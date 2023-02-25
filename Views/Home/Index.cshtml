@@ -1,0 +1,181 @@
+﻿<br />
+<div class="row">
+    <table id="tblPlans" class="table table-bordered">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Patient name</th>
+                <th>User name</th>
+                <th>Start Date</th>
+                <th>Target Date</th>
+                <th>Reason</th>
+                <th>Action</th>
+                <th>Completed</th>
+                <th>End Date</th>
+                <th>Outcome</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="tbdPlans"></tbody>
+    </table>
+</div>
+
+<style>
+    #tblPlans td:first-child,
+    #tblPlans td:last-child {
+        vertical-align: middle
+    }
+    textarea {
+        max-width: 100%;
+    }
+</style>
+
+<form id="frmPlan" onsubmit="return false">
+    <input type="hidden" id="Id" name="Id" />
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    Care plan
+                </div>
+                <div class="panel-body">
+                    <p><input id="Title" name="Title" maxlength="450" placeholder="Title" class="form-control" required /></p>
+                    <p><input id="PatientName" name="PatientName" maxlength="450" placeholder="Patient name" class="form-control" required /></p>
+                    <p><input id="UserName" name="UserName" maxlength="450" placeholder="User name" class="form-control" required /></p>
+                    <p><input id="StartDate" name="StartDate" maxlength="16" pattern="\d{4}-\d{2}-\d{2} \d{2}:\d{2}" placeholder="Start date/time" title="yyyy-mm-dd HH:mm" class="form-control" required /></p>
+                    <p><input id="TargetDate" name="TargetDate" maxlength="16" pattern="\d{4}-\d{2}-\d{2} \d{2}:\d{2}" placeholder="Target date/time" title="yyyy-mm-dd HH:mm" class="form-control" required /></p>
+                    <p><textarea id="Reason" name="Reason" maxlength="1000" placeholder="Reason" class="form-control" required></textarea></p>
+                    <p><textarea id="Action" name="Action" maxlength="1000" placeholder="Action" class="form-control" required></textarea></p>
+                    <p>
+                        <select id="Completed" name="Completed" class="form-control" onchange="ToggleOptionals()">
+                            <option value="">- Completed -</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </p>
+                    <p><input id="EndDate" name="EndDate" maxlength="16" pattern="\d{4}-\d{2}-\d{2} \d{2}:\d{2}" placeholder="End date/time" title="yyyy-mm-dd HH:mm" class="form-control" /></p>
+                    <p><textarea id="Outcome" name="Outcome" maxlength="1000" placeholder="Outcome" class="form-control"></textarea></p>
+                </div>
+                <div class="panel-footer">
+                    <input id="bAdd" type="submit" class="btn btn-primary" onclick="addPlan()" value="Add" />
+                    <input id="bUpdate" type="submit" class="btn btn-primary" onclick="updatePlan()" value="Update" />
+                    <input id="bCancel" type="reset" class="btn btn-primary" onclick="window.location.href=window.location.href" value="Cancel" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts{
+    <script>
+        function addPlan() {
+            if (!isValid()) return;
+
+            $.post('/api/Plans', $('#frmPlan').serialize())
+                .done(function () {
+                    window.location.href = window.location.href;
+                })
+                .fail(function (jqxhr, textStatus, error) {
+                    alert('Cannot add plan: ' + textStatus + ', ' + error);
+                });
+        }
+
+        function deletePlan(id) {
+            $.ajax({
+                type: 'DELETE',
+                url: '/api/Plans/' + id
+            }).done(function () {
+                window.location.href = window.location.href;
+            }).fail(function (jqxhr, textStatus, error) {
+                alert('Cannot delete plan: ' + textStatus + ', ' + error);
+            });
+        }
+
+        function fillPlan(id, btn) {
+            var cells = $(btn).closest('tr').children('td');
+
+            $('#Id').val(id);
+            $('#Title').val(cells[1].innerText);
+            $('#PatientName').val(cells[2].innerText);
+            $('#UserName').val(cells[3].innerText);
+            $('#StartDate').val(standardDate(cells[4].innerText));
+            $('#TargetDate').val(standardDate(cells[5].innerText));
+            $('#Reason').val(cells[6].innerText);
+            $('#Action').val(cells[7].innerText);
+            $('#Completed').val($('input', cells[8]).is(':checked').toString());
+            ToggleOptionals();
+            $('#EndDate').val(standardDate(cells[9].innerText));
+            $('#Outcome').val(cells[10].innerText);
+
+            $('#bAdd').hide();
+            $('#bUpdate, #bCancel').show();
+        }
+
+        function getPlans() {
+            $('#bUpdate, #bCancel').hide();
+
+            $.getJSON('/api/Plans')
+                .done(function (data) {
+                    if (data == '')
+                        $('#tblPlans').hide();
+                    else {
+                        $.each(data, function (key, val) {
+                            $('#tbdPlans').append('<tr><td><button onclick="fillPlan(' + val.Id + ', this)"><span class="glyphicon glyphicon-edit"></span></button></td><td>' + val.Title + '</td><td>' + val.PatientName + '</td><td>' + val.UserName + '</td><td>' + localeDate(val.StartDate) + '</td><td>' + localeDate(val.TargetDate) + '</td><td>' + val.Reason + '</td><td>' + val.Action + '</td><td style="text-align:center"><input type="checkbox" ' + (val.Completed ? 'checked' : '') + ' /></td><td>' + localeDate(val.EndDate) + '</td><td>' + $.trim(val.Outcome) + '</td><td><button onclick="deletePlan(' + val.Id + ')"><span class="glyphicon glyphicon-remove"></span></button></td></tr>');
+                        });
+                        $('#tblPlans').show();
+                    }
+                })
+                .fail(function (jqxhr, textStatus, error) {
+                    alert('Cannot get plans: ' + textStatus + ', ' + error)
+                });
+        }
+
+        function isValid() {
+            if (!frmPlan.checkValidity()) return false;
+            if ($('#Completed').val() == 'true' && $('#EndDate').val() < $('#StartDate').val()) {
+                alert('End date/time cannot be before Start date/time');
+                $('#EndDate').focus();
+                return false;
+            }
+            return true;
+        }
+
+        function localeDate(dte) {
+            return (dte == null) ? '' : new Date(dte).toLocaleString().replace(':00', '');
+        }
+
+        function standardDate(dte) {
+            if (dte == '') return '';
+
+            var d = new Date(dte)
+            return d.getFullYear() + '-' + ("0" + (d.getMonth() + 1)).slice(-2) + '-' + ("0" + d.getDate()).slice(-2) + ' ' + ("0" + d.getHours()).slice(-2) + ':' + ("0" + d.getMinutes()).slice(-2);
+        }
+
+        function ToggleOptionals() {
+            if ($('#Completed').val() == 'true') {
+                $('#EndDate, #Outcome').attr('required', 1).show();
+            }
+            else {
+                $('#EndDate, #Outcome').removeAttr('required').val('').hide();
+            }
+        }
+
+        function updatePlan() {
+            if (!isValid()) return;
+
+            $.ajax({
+                data: $('#frmPlan').serialize(),
+                type: 'PUT',
+                url: '/api/Plans/' + $('#Id').val()
+            }).done(function () {
+                window.location.href = window.location.href;
+            }).fail(function (jqxhr, textStatus, error) {
+                alert('Cannot update plan: ' + textStatus + ', ' + error);
+            });
+        }
+
+        ToggleOptionals();
+        getPlans();
+    </script>
+}
