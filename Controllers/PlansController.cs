@@ -46,8 +46,9 @@ namespace CarePlan.Controllers
         [ResponseType(typeof(void))]
         public IHttpActionResult PutPlan(int id, Plan plan)
         {
-            if (!Validate(plan))
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            string message = ValidateRules(plan);
+            if (!string.IsNullOrEmpty(message)) return BadRequest(message);
 
             if (id != plan.Id)
                 return BadRequest();
@@ -77,8 +78,9 @@ namespace CarePlan.Controllers
         [ResponseType(typeof(Plan))]
         public IHttpActionResult PostPlan(Plan plan)
         {
-            if (!Validate(plan))
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            string message = ValidateRules(plan);
+            if (!string.IsNullOrEmpty(message)) return BadRequest(message);
 
             db.Plans.Add(plan);
             db.SaveChanges();
@@ -105,23 +107,30 @@ namespace CarePlan.Controllers
             return Ok(plan);
         }
 
-        private bool Validate(Plan plan)
+        private string ValidateRules(Plan plan)
         {
-            if (!ModelState.IsValid) return false;
+            System.Collections.Generic.List<string> errors = new System.Collections.Generic.List<string>();
 
-            // Check rules
             if (plan.Completed == true)
             {
-                if (plan.EndDate == null || plan.Outcome == null || plan.EndDate < plan.StartDate)
-                    return false;
+                if (plan.EndDate == null)
+                    errors.Add("The EndDate field is required when the Completed field is true.");
+                else
+                {
+                    if (plan.EndDate < plan.StartDate)
+                        errors.Add("The EndDate field cannot be before the StartDate field.");
+                }
+
+                if (plan.Outcome == null)
+                    errors.Add("The Outcome field is required when the Completed field is true.");
             }
             else
-            {
+            {   // Ensure data integrity. Or alternatively set error message.
                 plan.EndDate = null;
                 plan.Outcome = null;
             }
 
-            return true;
+            return string.Join(System.Environment.NewLine, errors);
         }
 
     }

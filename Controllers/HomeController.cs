@@ -10,5 +10,12 @@ namespace CarePlan.Controllers
 
             return View();
         }
+
+        public ActionResult Test()
+        {
+            ViewBag.Title = "Test API";
+
+            return View();
+        }
     }
 }

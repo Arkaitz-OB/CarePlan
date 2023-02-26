@@ -1,0 +1,155 @@
+﻿@{
+    ViewBag.Title = "Care Plans API Test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 style="font-family: Segoe UI Light">API Test</h2>
+<br />
+<form action="/api/Plans" method="get">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    GET api/Plans
+                </div>
+                <div class="panel-footer">
+                    <input type="submit" class="btn btn-primary" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form action="/api/Plans" method="get">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    GET api/Plans/{id}
+                </div>
+                <div class="panel-body">
+                    <p><input name="Id" placeholder="Id" class="form-control" /></p>
+                </div>
+                <div class="panel-footer">
+                    <input type="submit" class="btn btn-primary" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form action="/api/Plans" method="post">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    POST api/Plans
+                </div>
+                <div class="panel-body">
+                    <p><input name="Title" placeholder="Title" class="form-control" /></p>
+                    <p><input name="PatientName" placeholder="Patient name" class="form-control" /></p>
+                    <p><input name="UserName" placeholder="User name" class="form-control" /></p>
+                    <p><input name="StartDate" placeholder="Start date/time" title="yyyy-mm-dd HH:mm" class="form-control" /></p>
+                    <p><input name="TargetDate" placeholder="Target date/time" title="yyyy-mm-dd HH:mm" class="form-control" /></p>
+                    <p><textarea name="Reason" placeholder="Reason" class="form-control"></textarea></p>
+                    <p><textarea name="Action" placeholder="Action" class="form-control"></textarea></p>
+                    <p>
+                        <select name="Completed" class="form-control">
+                            <option value="">- Completed -</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </p>
+                    <p><input name="EndDate" placeholder="End date/time" title="yyyy-mm-dd HH:mm" class="form-control" /></p>
+                    <p><textarea name="Outcome" placeholder="Outcome" class="form-control"></textarea></p>
+                </div>
+                <div class="panel-footer">
+                    <input type="submit" class="btn btn-primary" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form action="/api/Plans" method="put" onsubmit="return updatePlan(this)">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    PUT api/Plans/{id}
+                </div>
+                <div class="panel-body">
+                    <p><input name="Id" placeholder="Id" class="form-control" /></p>
+                    <p><input name="Title" placeholder="Title" class="form-control" /></p>
+                    <p><input name="PatientName" placeholder="Patient name" class="form-control" /></p>
+                    <p><input name="UserName" placeholder="User name" class="form-control" /></p>
+                    <p><input name="StartDate" placeholder="Start date/time" title="yyyy-mm-dd HH:mm" class="form-control" /></p>
+                    <p><input name="TargetDate" placeholder="Target date/time" title="yyyy-mm-dd HH:mm" class="form-control" /></p>
+                    <p><textarea name="Reason" placeholder="Reason" class="form-control"></textarea></p>
+                    <p><textarea name="Action" placeholder="Action" class="form-control"></textarea></p>
+                    <p>
+                        <select name="Completed" class="form-control">
+                            <option value="">- Completed -</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </p>
+                    <p><input name="EndDate" placeholder="End date/time" title="yyyy-mm-dd HH:mm" class="form-control" /></p>
+                    <p><textarea name="Outcome" placeholder="Outcome" class="form-control"></textarea></p>
+                </div>
+                <div class="panel-footer">
+                    <input type="submit" class="btn btn-primary" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form action="/api/Plans" method="delete" onsubmit="return deletePlan(this)">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    DELETE api/Plans/{id}
+                </div>
+                <div class="panel-body">
+                    <p><input name="Id" placeholder="Id" class="form-control" /></p>
+                </div>
+                <div class="panel-footer">
+                    <input type="submit" class="btn btn-primary" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts{
+    <script>
+        function deletePlan(frm) {
+            $.ajax({
+                type: 'DELETE',
+                url: '/api/Plans/' + $('input[name=Id]', frm).val()
+            }).done(function () {
+                alert('OK');
+            }).fail(function (jqxhr, textStatus, error) {
+                alert(jqxhr.responseText);
+            });
+
+            return false;
+        }
+
+        function updatePlan(frm) {
+            $.ajax({
+                data: $(frm).serialize(),
+                type: 'PUT',
+                url: '/api/Plans/' + $('input[name=Id]', frm).val()
+            }).done(function () {
+                alert('OK');
+            }).fail(function (jqxhr, textStatus, error) {
+                alert(jqxhr.responseText);
+            });
+
+            return false;
+        }
+    </script>
+}
